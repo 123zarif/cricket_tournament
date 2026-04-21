@@ -17,10 +17,10 @@ export default function AdminDashboard() {
     // Scores
     const [t1Runs, setT1Runs] = useState('');
     const [t1Wickets, setT1Wickets] = useState('');
-    const [t1Overs, setT1Overs] = useState('15.0');
+    const [t1Overs, setT1Overs] = useState('3.0');
     const [t2Runs, setT2Runs] = useState('');
     const [t2Wickets, setT2Wickets] = useState('');
-    const [t2Overs, setT2Overs] = useState('15.0');
+    const [t2Overs, setT2Overs] = useState('3.0');
 
     // Stats Dictionaries (Keyed by Player _id)
     const [i1Batting, setI1Batting] = useState<Record<string, any>>({});
