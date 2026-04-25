@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongoose';
 import FinishedMatch from '@/models/FinishedMatch';
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: { id: string } }) {
     try {
         const authHeader = req.headers.get('authorization');
         const secretKey = process.env.ADMIN_SECRET_KEY;
