@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongoose';
 import ScheduledMatch from '@/models/ScheduledMatch';
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+// Notice the params are now typed as a Promise
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const authHeader = req.headers.get('authorization');
         const secretKey = process.env.ADMIN_SECRET_KEY;
@@ -11,11 +12,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        // We must await the params before extracting the ID
+        const { id } = await params;
+
         await dbConnect();
         const body = await req.json();
 
-        // Overwrite the scheduled match with the new teams/date
-        const updatedSchedule = await ScheduledMatch.findByIdAndUpdate(params.id, body, { new: true });
+        // Overwrite the scheduled match using the awaited ID
+        const updatedSchedule = await ScheduledMatch.findByIdAndUpdate(id, body, { new: true });
 
         return NextResponse.json({
             message: "Schedule successfully updated!",

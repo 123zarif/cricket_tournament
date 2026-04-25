@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongoose';
 import FinishedMatch from '@/models/FinishedMatch';
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+// Note the change in the type signature: params is now a Promise
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
         const authHeader = req.headers.get('authorization');
         const secretKey = process.env.ADMIN_SECRET_KEY;
@@ -11,11 +12,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
+        // We must await the params before extracting the ID
+        const { id } = await params;
+
         await dbConnect();
         const body = await req.json();
 
-        // Find the match by ID and completely overwrite it with the new form data
-        const updatedMatch = await FinishedMatch.findByIdAndUpdate(params.id, body, { new: true });
+        // Overwrite the match using the awaited ID
+        const updatedMatch = await FinishedMatch.findByIdAndUpdate(id, body, { new: true });
 
         return NextResponse.json({
             message: "Match successfully updated!",
