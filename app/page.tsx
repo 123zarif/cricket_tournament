@@ -14,21 +14,35 @@ function MatchResultCard({ match }: { match: any }) {
         <div className="text-emerald-400 text-sm font-bold bg-emerald-400/10 inline-block px-4 py-1.5 rounded-full mb-4">
           🏆 {match.result}
         </div>
-        <div className="flex justify-around items-center mb-4">
-          <div className="flex-1">
-            <div className="text-xl font-black text-white truncate">{match.innings1.teamName}</div>
-            <div className="text-emerald-400 font-mono text-2xl font-bold">
-              {match.innings1.total} <span className="text-xs text-slate-500 font-sans">({match.innings1.overs} ov)</span>
+
+        {/* === CENTERED & MOBILE SAFE SECTION === */}
+        <div className="flex justify-center items-center gap-2 md:gap-6 mb-4 w-full">
+          {/* Team 1 (Centered Column) */}
+          <div className="flex-1 min-w-0 flex flex-col items-center">
+            <div className="w-full text-center text-base md:text-xl font-black text-white truncate">
+              {match.innings1.teamName}
+            </div>
+            <div className="text-emerald-400 font-mono text-xl md:text-2xl font-bold">
+              {match.innings1.total} <span className="text-[10px] md:text-xs text-slate-500 font-sans">({match.innings1.overs} ov)</span>
             </div>
           </div>
-          <div className="text-slate-700 font-black text-lg italic px-4">VS</div>
-          <div className="flex-1">
-            <div className="text-xl font-black text-white truncate">{match.innings2.teamName}</div>
-            <div className="text-emerald-400 font-mono text-2xl font-bold">
-              {match.innings2.total} <span className="text-xs text-slate-500 font-sans">({match.innings2.overs} ov)</span>
+
+          {/* VS Divider (Protected from squishing) */}
+          <div className="text-slate-700 font-black text-sm md:text-lg italic shrink-0 px-1">
+            VS
+          </div>
+
+          {/* Team 2 (Centered Column) */}
+          <div className="flex-1 min-w-0 flex flex-col items-center">
+            <div className="w-full text-center text-base md:text-xl font-black text-white truncate">
+              {match.innings2.teamName}
+            </div>
+            <div className="text-emerald-400 font-mono text-xl md:text-2xl font-bold">
+              {match.innings2.total} <span className="text-[10px] md:text-xs text-slate-500 font-sans">({match.innings2.overs} ov)</span>
             </div>
           </div>
         </div>
+        {/* ========================================= */}
 
         {/* Toggle Button */}
         <button
@@ -42,43 +56,55 @@ function MatchResultCard({ match }: { match: any }) {
       {/* Detailed Scorecards (Hidden by default) */}
       {isOpen && (
         <div className="p-0 animate-in slide-in-from-top-2 fade-in duration-200 bg-slate-950/50">
-          {/* Innings 1 */}
+
+          {/* ================== INNINGS 1 ================== */}
           <div className="border-b border-slate-800 p-6">
             <h3 className="text-white font-black uppercase tracking-tight mb-4 bg-slate-800 inline-block px-3 py-1.5 rounded-md text-xs">
               1st Innings: {match.innings1.teamName}
             </h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
               {/* Batting */}
               <div>
-                <div className="grid grid-cols-4 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-2 px-2">
+                <div className="grid grid-cols-5 gap-x-1 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-2 px-2">
                   <div className="col-span-2">Batter</div>
                   <div className="text-right">R</div>
-                  <div className="text-right">B</div>
+                  {/* ADDED PADDING (pr-3 md:pr-4) TO FORCE THE GAP */}
+                  <div className="text-right pr-3 md:pr-4">B</div>
+                  <div className="text-right text-emerald-400">SR</div>
                 </div>
                 <ul className="space-y-1.5">
-                  {match.innings1.batting.map((player: any, idx: number) => (
-                    <li key={idx} className="grid grid-cols-4 text-sm border-b border-slate-800/30 py-1.5 px-2 items-center hover:bg-slate-800/10">
-                      {/* DYNAMIC PLAYER ID FIX HERE */}
-                      <span className="col-span-2 font-medium text-slate-300">{player.playerId?.name || 'Unknown'}</span>
-                      <span className="text-right font-mono font-bold text-white">{player.runs}</span>
-                      <span className="text-right font-mono text-slate-500">{player.balls}</span>
-                    </li>
-                  ))}
+                  {match.innings1.batting.map((player: any, idx: number) => {
+                    const sr = player.balls > 0 ? ((player.runs / player.balls) * 100).toFixed(1) : "0.0";
+                    return (
+                      <li key={idx} className="grid grid-cols-5 gap-x-1 text-sm border-b border-slate-800/30 py-1.5 px-2 items-center hover:bg-slate-800/10">
+                        <span className="col-span-2 font-medium text-slate-300 truncate pr-2">{player.playerId?.name || 'Unknown'}</span>
+                        <span className="text-right font-mono font-bold text-white">{player.runs}</span>
+                        {/* PUSH BALLS LEFT */}
+                        <span className="text-right font-mono text-slate-500 pr-3 md:pr-4">{player.balls}</span>
+                        <span className="text-right font-mono font-bold text-emerald-400">{sr}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
+
               {/* Bowling */}
               <div>
-                <div className="grid grid-cols-4 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-2 px-2">
+                <div className="grid grid-cols-5 gap-x-1 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-2 px-2">
                   <div className="col-span-2">Bowler</div>
                   <div className="text-right">O</div>
-                  <div className="text-right">W</div>
+                  {/* ADDED PADDING TO FORCE GAP BEFORE WICKETS */}
+                  <div className="text-right pr-3 md:pr-4">R</div>
+                  <div className="text-right text-emerald-400">W</div>
                 </div>
                 <ul className="space-y-1.5">
                   {match.innings1.bowling.map((player: any, idx: number) => (
-                    <li key={idx} className="grid grid-cols-4 text-sm border-b border-slate-800/30 py-1.5 px-2 items-center hover:bg-slate-800/10">
-                      {/* DYNAMIC PLAYER ID FIX HERE */}
-                      <span className="col-span-2 font-medium text-slate-300">{player.playerId?.name || 'Unknown'}</span>
+                    <li key={idx} className="grid grid-cols-5 gap-x-1 text-sm border-b border-slate-800/30 py-1.5 px-2 items-center hover:bg-slate-800/10">
+                      <span className="col-span-2 font-medium text-slate-300 truncate pr-2">{player.playerId?.name || 'Unknown'}</span>
                       <span className="text-right font-mono text-slate-500">{player.overs}</span>
+                      {/* PUSH RUNS LEFT */}
+                      <span className="text-right font-mono text-slate-400 pr-3 md:pr-4">{player.runs}</span>
                       <span className="text-right font-mono font-bold text-emerald-400">{player.wickets}</span>
                     </li>
                   ))}
@@ -87,43 +113,50 @@ function MatchResultCard({ match }: { match: any }) {
             </div>
           </div>
 
-          {/* Innings 2 */}
+          {/* ================== INNINGS 2 ================== */}
           <div className="p-6">
             <h3 className="text-white font-black uppercase tracking-tight mb-4 bg-slate-800 inline-block px-3 py-1.5 rounded-md text-xs">
               2nd Innings: {match.innings2.teamName}
             </h3>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
               {/* Batting */}
               <div>
-                <div className="grid grid-cols-4 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-2 px-2">
+                <div className="grid grid-cols-5 gap-x-1 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-2 px-2">
                   <div className="col-span-2">Batter</div>
                   <div className="text-right">R</div>
-                  <div className="text-right">B</div>
+                  <div className="text-right pr-3 md:pr-4">B</div>
+                  <div className="text-right text-emerald-400">SR</div>
                 </div>
                 <ul className="space-y-1.5">
-                  {match.innings2.batting.map((player: any, idx: number) => (
-                    <li key={idx} className="grid grid-cols-4 text-sm border-b border-slate-800/30 py-1.5 px-2 items-center hover:bg-slate-800/10">
-                      {/* DYNAMIC PLAYER ID FIX HERE */}
-                      <span className="col-span-2 font-medium text-slate-300">{player.playerId?.name || 'Unknown'}</span>
-                      <span className="text-right font-mono font-bold text-white">{player.runs}</span>
-                      <span className="text-right font-mono text-slate-500">{player.balls}</span>
-                    </li>
-                  ))}
+                  {match.innings2.batting.map((player: any, idx: number) => {
+                    const sr = player.balls > 0 ? ((player.runs / player.balls) * 100).toFixed(1) : "0.0";
+                    return (
+                      <li key={idx} className="grid grid-cols-5 gap-x-1 text-sm border-b border-slate-800/30 py-1.5 px-2 items-center hover:bg-slate-800/10">
+                        <span className="col-span-2 font-medium text-slate-300 truncate pr-2">{player.playerId?.name || 'Unknown'}</span>
+                        <span className="text-right font-mono font-bold text-white">{player.runs}</span>
+                        <span className="text-right font-mono text-slate-500 pr-3 md:pr-4">{player.balls}</span>
+                        <span className="text-right font-mono font-bold text-emerald-400">{sr}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
+
               {/* Bowling */}
               <div>
-                <div className="grid grid-cols-4 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-2 px-2">
+                <div className="grid grid-cols-5 gap-x-1 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-2 px-2">
                   <div className="col-span-2">Bowler</div>
                   <div className="text-right">O</div>
-                  <div className="text-right">W</div>
+                  <div className="text-right pr-3 md:pr-4">R</div>
+                  <div className="text-right text-emerald-400">W</div>
                 </div>
                 <ul className="space-y-1.5">
                   {match.innings2.bowling.map((player: any, idx: number) => (
-                    <li key={idx} className="grid grid-cols-4 text-sm border-b border-slate-800/30 py-1.5 px-2 items-center hover:bg-slate-800/10">
-                      {/* DYNAMIC PLAYER ID FIX HERE */}
-                      <span className="col-span-2 font-medium text-slate-300">{player.playerId?.name || 'Unknown'}</span>
+                    <li key={idx} className="grid grid-cols-5 gap-x-1 text-sm border-b border-slate-800/30 py-1.5 px-2 items-center hover:bg-slate-800/10">
+                      <span className="col-span-2 font-medium text-slate-300 truncate pr-2">{player.playerId?.name || 'Unknown'}</span>
                       <span className="text-right font-mono text-slate-500">{player.overs}</span>
+                      <span className="text-right font-mono text-slate-400 pr-3 md:pr-4">{player.runs}</span>
                       <span className="text-right font-mono font-bold text-emerald-400">{player.wickets}</span>
                     </li>
                   ))}
@@ -131,6 +164,7 @@ function MatchResultCard({ match }: { match: any }) {
               </div>
             </div>
           </div>
+
         </div>
       )}
     </div>
@@ -142,10 +176,8 @@ export default function CricketDashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch dynamic Mongoose data when the page loads
+  // Fetch dynamic Mongoose data
   useEffect(() => {
-    // NOTE: Changed from /api/table to /api/tournament based on your backend setup. 
-    // Change it back if you created a separate table route!
     fetch('/api/tournament')
       .then((res) => res.json())
       .then((fetchedData) => {
@@ -203,6 +235,7 @@ export default function CricketDashboard() {
                   <th scope="col" className="px-4 py-5 text-center">P</th>
                   <th scope="col" className="px-4 py-5 text-center">W</th>
                   <th scope="col" className="px-4 py-5 text-center">L</th>
+                  <th scope="col" className="px-4 py-5 text-center text-slate-400">NRR</th>
                   <th scope="col" className="px-6 py-5 text-right text-emerald-400">Pts</th>
                 </tr>
               </thead>
@@ -218,6 +251,9 @@ export default function CricketDashboard() {
                     <td className="px-4 py-5 text-center text-slate-400 font-mono text-base">{row.p}</td>
                     <td className="px-4 py-5 text-center text-slate-300 font-mono text-base">{row.w}</td>
                     <td className="px-4 py-5 text-center text-slate-500 font-mono text-base">{row.l}</td>
+                    <td className={`px-4 py-5 text-center font-mono text-base font-bold ${parseFloat(row.nrr) >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {row.nrr}
+                    </td>
                     <td className="px-6 py-5 text-right font-black text-white text-xl font-mono">{row.pts}</td>
                   </tr>
                 ))}
@@ -242,7 +278,6 @@ export default function CricketDashboard() {
                     <span>{match.date}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    {/* Access populated .name property from Mongoose */}
                     <span className="font-black text-xl text-white truncate">{match.team1?.name}</span>
                     <span className="text-slate-700 font-black text-lg italic mx-3">VS</span>
                     <span className="font-black text-xl text-white truncate text-right">{match.team2?.name}</span>
