@@ -7,7 +7,6 @@ export async function GET() {
         await dbConnect();
 
         const topWicketTakers = await FinishedMatch.aggregate([
-            // 1. Combine both bowling innings into one array
             {
                 $project: {
                     allBowling: {
@@ -18,21 +17,26 @@ export async function GET() {
                     }
                 }
             },
-            // 2. Unwind to process every bowling spell individually
             {
                 $unwind: "$allBowling"
             },
-            // 3. Group by bowler and sum up their stats
             {
                 $group: {
                     _id: "$allBowling.playerId",
                     totalWickets: { $sum: "$allBowling.wickets" },
                     totalRunsConceded: { $sum: "$allBowling.runs" },
-                    totalOvers: { $sum: "$allBowling.overs" },
-                    inningsBowled: { $sum: 1 }
+                    inningsBowled: { $sum: 1 },
+                    // THE FIX: Convert overs (e.g., 2.3) into total balls (15) so we can add them safely
+                    totalBalls: {
+                        $sum: {
+                            $add: [
+                                { $multiply: [{ $trunc: "$allBowling.overs" }, 6] }, // Get full overs and multiply by 6
+                                { $round: [{ $multiply: [{ $subtract: ["$allBowling.overs", { $trunc: "$allBowling.overs" }] }, 10] }, 0] } // Get decimal balls
+                            ]
+                        }
+                    }
                 }
             },
-            // 4. Lookup their real name from the players collection
             {
                 $lookup: {
                     from: "players",
@@ -44,7 +48,6 @@ export async function GET() {
             {
                 $unwind: "$playerInfo"
             },
-            // 5. Calculate Economy Rate and format output
             {
                 $project: {
                     _id: 0,
@@ -52,23 +55,29 @@ export async function GET() {
                     playerName: "$playerInfo.name",
                     totalWickets: 1,
                     totalRunsConceded: 1,
-                    totalOvers: 1,
                     inningsBowled: 1,
+                    // Convert total balls back into real cricket overs (e.g., 16 balls -> 2.4 overs)
+                    totalOvers: {
+                        $add: [
+                            { $trunc: { $divide: ["$totalBalls", 6] } },
+                            { $divide: [{ $mod: ["$totalBalls", 6] }, 10] }
+                        ]
+                    },
+                    // Calculate real Economy Rate: (Runs / Balls) * 6
                     economyRate: {
                         $round: [
                             {
                                 $cond: [
-                                    { $eq: ["$totalOvers", 0] },
+                                    { $eq: ["$totalBalls", 0] },
                                     0,
-                                    { $divide: ["$totalRunsConceded", "$totalOvers"] }
+                                    { $multiply: [{ $divide: ["$totalRunsConceded", "$totalBalls"] }, 6] }
                                 ]
                             },
-                            2 // Round economy to 2 decimal places
+                            2
                         ]
                     }
                 }
             },
-            // 6. Sort by Wickets (High to Low), then Economy (Low to High)
             {
                 $sort: { totalWickets: -1, economyRate: 1 }
             }
